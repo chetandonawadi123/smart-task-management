@@ -1,7 +1,7 @@
 
 from fastapi import FastAPI
 
-from app.api.v1.endpoints import auth, health, info, projects
+from app.api.v1.endpoints import auth, health, info, projects, tasks
 
 
 app = FastAPI(
@@ -32,4 +32,16 @@ app.include_router(
     projects.router,
     prefix="/api/v1/projects",
     tags=["Projects"]
+)
+
+app.include_router(
+    tasks.project_tasks_router,
+    prefix="/api/v1/projects/{project_id}/tasks",
+    tags=["Tasks"]
+)
+
+app.include_router(
+    tasks.task_router,
+    prefix="/api/v1/tasks",
+    tags=["Tasks"]
 )

@@ -18,11 +18,11 @@ class Task(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "status IN ('todo', 'in_progress', 'completed')",
+            "status IN ('todo', 'in_progress', 'in_review', 'done')",
             name="check_task_status"
         ),
         CheckConstraint(
-            "priority IN ('low', 'medium', 'high', 'urgent')",
+            "priority IN ('low', 'medium', 'high', 'critical')",
             name="check_task_priority"
         ),
     )
@@ -76,6 +76,13 @@ class Task(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
+        nullable=False
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         nullable=False
     )
 
