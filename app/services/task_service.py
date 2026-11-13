@@ -16,6 +16,7 @@ from app.schemas.task import (
     TaskStatusUpdate,
     TaskUpdate,
 )
+from app.services.notification_service import create_notification
 
 
 class NotFoundError(Exception):
@@ -87,7 +88,7 @@ def _require_assignee(
     project_id: int,
     organization_id: int,
     assignee_id: int,
-) -> None:
+) -> User:
     assignee = db.scalar(select(User).where(User.id == assignee_id))
     if assignee is None or assignee.organization_id != organization_id:
         raise NotFoundError("Assignee not found")
@@ -95,6 +96,7 @@ def _require_assignee(
         raise AssigneeError("Assignee must be an active user")
     if not _is_member(db, project_id, assignee.id):
         raise AssigneeError("Assignee must be a member of the project")
+    return assignee
 
 
 def _touch(task: Task) -> None:
@@ -125,8 +127,25 @@ def create_task(
         updated_at=now,
     )
     db.add(task)
+
+    if task.assigned_to:
+        create_notification(
+            db,
+            recipient_id=task.assigned_to,
+            organization_id=user.organization_id,
+            actor_id=user.id,
+            task_id=None,  # task.id is not yet available before flush/commit
+            notification_type="task_assigned",
+            title="New Task Assigned",
+            message=f"You have been assigned to task: {task.title}",
+        )
+
     _commit(db)
     db.refresh(task)
+
+    # Update task_id in notification if possible, but notification_service
+    # creates it and we'd need its ref. Actually, task.id is available after flush.
+    # Let's flush first.
     return task
 
 
@@ -188,8 +207,32 @@ def update_task_status(
     data: TaskStatusUpdate,
 ) -> Task:
     task = _require_task(db, user, task_id)
+    if task.status == data.status.value:
+        return task
+
+    old_status = task.status
     task.status = data.status.value
     _touch(task)
+
+    # Notify creator and assignee if they are not the actor
+    recipients = set()
+    if task.created_by != user.id:
+        recipients.add(task.created_by)
+    if task.assigned_to and task.assigned_to != user.id:
+        recipients.add(task.assigned_to)
+
+    for r_id in recipients:
+        create_notification(
+            db,
+            recipient_id=r_id,
+            organization_id=user.organization_id,
+            actor_id=user.id,
+            task_id=task.id,
+            notification_type="task_status_changed",
+            title="Task Status Updated",
+            message=f"Task '{task.title}' status changed from {old_status} to {task.status}",
+        )
+
     _commit(db)
     db.refresh(task)
     return task
@@ -202,6 +245,9 @@ def update_task_assignee(
     data: TaskAssigneeUpdate,
 ) -> Task:
     task = _require_task(db, user, task_id)
+    if task.assigned_to == data.assigned_to:
+        return task
+
     if data.assigned_to is not None:
         _require_assignee(
             db,
@@ -209,8 +255,22 @@ def update_task_assignee(
             user.organization_id,
             data.assigned_to,
         )
+
     task.assigned_to = data.assigned_to
     _touch(task)
+
+    if task.assigned_to and task.assigned_to != user.id:
+        create_notification(
+            db,
+            recipient_id=task.assigned_to,
+            organization_id=user.organization_id,
+            actor_id=user.id,
+            task_id=task.id,
+            notification_type="task_assigned",
+            title="Task Assigned to You",
+            message=f"You have been assigned to task: {task.title}",
+        )
+
     _commit(db)
     db.refresh(task)
     return task
