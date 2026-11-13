@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.models.task_comment import TaskComment
 from app.models.user import User
 from app.schemas.task_comment import TaskCommentCreate, TaskCommentUpdate
-from app.services.notification_service import create_notification
+from app.services.notification_service import create_notification, dispatch_notification_event
 from app.services.task_service import (
     MembershipError,
     NotFoundError,
@@ -55,8 +55,9 @@ def create_comment(
     if task.assigned_to and task.assigned_to != user.id:
         recipients.add(task.assigned_to)
 
+    notifs = []
     for r_id in recipients:
-        create_notification(
+        n = create_notification(
             db,
             recipient_id=r_id,
             organization_id=user.organization_id,
@@ -66,9 +67,15 @@ def create_comment(
             title="New Comment on Task",
             message=f"New comment on task '{task.title}' by {user.name}",
         )
+        if n:
+            notifs.append(n)
 
     _commit(db)
     db.refresh(comment)
+
+    for n in notifs:
+        dispatch_notification_event(db, n.recipient_id, "notification.created", n)
+
     return comment
 
 

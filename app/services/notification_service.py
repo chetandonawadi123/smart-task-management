@@ -4,12 +4,57 @@ from sqlalchemy.orm import Session
 
 from app.models.notification import Notification
 from app.models.user import User
+from app.services.websocket_manager import manager
 
 
 class NotFoundError(Exception):
     def __init__(self, detail: str) -> None:
         self.detail = detail
         super().__init__(detail)
+
+
+def _get_unread_count_by_user_id(db: Session, user_id: int) -> int:
+    count = db.scalar(
+        select(func.count())
+        .select_from(Notification)
+        .where(
+            Notification.recipient_id == user_id,
+            Notification.is_read.is_(False),
+        )
+    )
+    return int(count or 0)
+
+
+def dispatch_notification_event(
+    db: Session,
+    recipient_id: int,
+    event_type: str,
+    notification: Notification | None = None,
+    notification_id: int | None = None,
+):
+    unread_count = _get_unread_count_by_user_id(db, recipient_id)
+
+    payload = {
+        "event": event_type,
+        "unread_count": unread_count,
+    }
+
+    if notification:
+        payload["notification"] = {
+            "id": notification.id,
+            "title": notification.title,
+            "message": notification.message,
+            "notification_type": notification.notification_type,
+            "created_at": notification.created_at.isoformat(),
+            "is_read": notification.is_read,
+            "task_id": notification.task_id,
+        }
+    elif notification_id:
+        payload["notification"] = {
+            "id": notification_id
+        }
+
+    manager.send_event_sync(recipient_id, payload)
 
 
 def create_notification(
@@ -39,7 +84,6 @@ def create_notification(
         created_at=datetime.now(timezone.utc),
     )
     db.add(notification)
-    # Note: caller commits the session
     return notification
 
 
@@ -77,16 +121,7 @@ def list_notifications(
 
 
 def get_unread_count(db: Session, user: User) -> int:
-    count = db.scalar(
-        select(func.count())
-        .select_from(Notification)
-        .where(
-            Notification.recipient_id == user.id,
-            Notification.organization_id == user.organization_id,
-            Notification.is_read.is_(False),
-        )
-    )
-    return int(count or 0)
+    return _get_unread_count_by_user_id(db, user.id)
 
 
 def mark_as_read(db: Session, user: User, notification_id: int) -> Notification:
@@ -103,6 +138,8 @@ def mark_as_read(db: Session, user: User, notification_id: int) -> Notification:
     notification.is_read = True
     db.commit()
     db.refresh(notification)
+
+    dispatch_notification_event(db, user.id, "notification.read", notification)
     return notification
 
 
@@ -117,6 +154,8 @@ def mark_all_as_read(db: Session, user: User) -> int:
         .values(is_read=True)
     )
     db.commit()
+
+    dispatch_notification_event(db, user.id, "notification.read_all")
     return result.rowcount
 
 
@@ -133,3 +172,5 @@ def delete_notification(db: Session, user: User, notification_id: int) -> None:
 
     db.delete(notification)
     db.commit()
+
+    dispatch_notification_event(db, user.id, "notification.deleted", notification_id=notification_id)

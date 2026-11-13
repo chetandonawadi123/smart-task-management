@@ -1,7 +1,7 @@
 
 from fastapi import FastAPI
 
-from app.api.v1.endpoints import auth, dashboard, health, info, notifications, projects, task_comments, tasks
+from app.api.v1.endpoints import auth, dashboard, health, info, notifications, projects, task_comments, tasks, ws
 
 
 app = FastAPI(
@@ -62,4 +62,10 @@ app.include_router(
     notifications.router,
     prefix="/api/v1",
     tags=["Notifications"]
+)
+
+app.include_router(
+    ws.router,
+    prefix="/api/v1",
+    tags=["WebSockets"]
 )

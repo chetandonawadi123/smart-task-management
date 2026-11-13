@@ -16,7 +16,7 @@ from app.schemas.task import (
     TaskStatusUpdate,
     TaskUpdate,
 )
-from app.services.notification_service import create_notification
+from app.services.notification_service import create_notification, dispatch_notification_event
 
 
 class NotFoundError(Exception):
@@ -127,14 +127,16 @@ def create_task(
         updated_at=now,
     )
     db.add(task)
+    db.flush() # Ensure task.id is available
 
-    if task.assigned_to:
-        create_notification(
+    notif = None
+    if task.assigned_to and task.assigned_to != user.id:
+        notif = create_notification(
             db,
             recipient_id=task.assigned_to,
             organization_id=user.organization_id,
             actor_id=user.id,
-            task_id=None,  # task.id is not yet available before flush/commit
+            task_id=task.id,
             notification_type="task_assigned",
             title="New Task Assigned",
             message=f"You have been assigned to task: {task.title}",
@@ -143,9 +145,9 @@ def create_task(
     _commit(db)
     db.refresh(task)
 
-    # Update task_id in notification if possible, but notification_service
-    # creates it and we'd need its ref. Actually, task.id is available after flush.
-    # Let's flush first.
+    if notif:
+        dispatch_notification_event(db, notif.recipient_id, "notification.created", notif)
+
     return task
 
 
@@ -221,8 +223,9 @@ def update_task_status(
     if task.assigned_to and task.assigned_to != user.id:
         recipients.add(task.assigned_to)
 
+    notifs = []
     for r_id in recipients:
-        create_notification(
+        n = create_notification(
             db,
             recipient_id=r_id,
             organization_id=user.organization_id,
@@ -232,9 +235,15 @@ def update_task_status(
             title="Task Status Updated",
             message=f"Task '{task.title}' status changed from {old_status} to {task.status}",
         )
+        if n:
+            notifs.append(n)
 
     _commit(db)
     db.refresh(task)
+
+    for n in notifs:
+        dispatch_notification_event(db, n.recipient_id, "notification.created", n)
+
     return task
 
 
@@ -259,8 +268,9 @@ def update_task_assignee(
     task.assigned_to = data.assigned_to
     _touch(task)
 
+    notif = None
     if task.assigned_to and task.assigned_to != user.id:
-        create_notification(
+        notif = create_notification(
             db,
             recipient_id=task.assigned_to,
             organization_id=user.organization_id,
@@ -273,6 +283,10 @@ def update_task_assignee(
 
     _commit(db)
     db.refresh(task)
+
+    if notif:
+        dispatch_notification_event(db, notif.recipient_id, "notification.created", notif)
+
     return task
 
 
