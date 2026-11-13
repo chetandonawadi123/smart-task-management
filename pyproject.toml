@@ -5,7 +5,15 @@ version = "0.1.0"
 description = "Smart Task Management and Team Collaboration API"
 requires-python = ">=3.12"
 dependencies = [
+    "alembic>=1.20.1",
+    "email-validator>=2.3.0",
     "fastapi[standard]>=0.162.5",
+    "psycopg[binary]>=3.3.9",
+    "pwdlib[argon2]>=0.3.1",
+    "pydantic-settings>=2.16.2",
+    "pyjwt[crypto]>=2.15.1",
+    "python-multipart>=0.0.33",
+    "sqlalchemy>=2.0",
 ]
 
 [tool.uv]
