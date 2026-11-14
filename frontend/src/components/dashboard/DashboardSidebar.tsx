@@ -24,7 +24,7 @@ const navigation = [
   { label: 'Tasks', icon: ListTodo, to: '/tasks' },
   { label: 'Kanban Board', icon: KanbanSquare, to: '/kanban' },
   { label: 'Notifications', icon: Bell, to: '/notifications' },
-  { label: 'Settings', icon: Settings },
+  { label: 'Settings', icon: Settings, to: '/settings' },
 ];
 
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ open, onClose, onLogout }) => (

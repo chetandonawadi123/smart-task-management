@@ -14,6 +14,8 @@ import { TaskDetails } from '../pages/TaskDetails';
 import { Notifications } from '../pages/Notifications';
 import { NotificationProvider } from '../contexts/NotificationContext';
 import { NotificationToast } from '../components/notifications/NotificationToast';
+import { Profile } from '../pages/Profile';
+import { Settings } from '../pages/Settings';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,6 +42,8 @@ export const AppRoutes: React.FC = () => {
               <Route path="/tasks/:taskId" element={<ProtectedRoute><TaskDetails /></ProtectedRoute>} />
               <Route path="/kanban" element={<ProtectedRoute><Kanban /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Routes>
             <NotificationToast />

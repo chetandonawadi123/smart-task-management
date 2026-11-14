@@ -9,6 +9,7 @@ import { StatCard } from '../components/dashboard/StatCard';
 import { TaskStatusChart, PriorityChart, ProjectChart, TeamChart } from '../components/dashboard/DashboardCharts';
 import { RecentActivity } from '../components/dashboard/RecentActivity';
 import { NotificationBell } from '../components/notifications/NotificationBell';
+import { Link } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -40,7 +41,7 @@ export const Dashboard: React.FC = () => {
             <NotificationBell />
             <div className="hidden h-8 w-px bg-slate-200 sm:block" />
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">{user?.name.charAt(0).toUpperCase()}</div>
+              <Link to="/profile" aria-label="Open profile" className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">{user?.name.charAt(0).toUpperCase()}</Link>
               <div className="hidden sm:block"><p className="text-sm font-semibold text-slate-800">{user?.name}</p><p className="text-xs text-slate-500">{user?.role}</p></div>
               <ChevronDown className="hidden h-4 w-4 text-slate-400 sm:block" />
             </div>
