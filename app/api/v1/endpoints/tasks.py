@@ -1,7 +1,7 @@
 import logging
-from typing import Annotated
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Response, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -77,10 +77,11 @@ def create_task_endpoint(
     data: TaskCreate,
     current_user: CurrentUser,
     db: Annotated[Session, Depends(get_db)],
+    background_tasks: BackgroundTasks,
 ):
     return _execute(
         "create task",
-        lambda: create_task(db, current_user, project_id, data),
+        lambda: create_task(db, current_user, project_id, data, background_tasks=background_tasks),
     )
 
 
@@ -174,8 +175,9 @@ def update_task_assignee_endpoint(
     data: TaskAssigneeUpdate,
     current_user: CurrentUser,
     db: Annotated[Session, Depends(get_db)],
+    background_tasks: BackgroundTasks,
 ):
     return _execute(
         "assign task",
-        lambda: update_task_assignee(db, current_user, task_id, data),
+        lambda: update_task_assignee(db, current_user, task_id, data, background_tasks=background_tasks),
     )

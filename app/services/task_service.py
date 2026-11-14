@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
+from typing import Optional
 
+from fastapi import BackgroundTasks
 from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -15,6 +17,10 @@ from app.schemas.task import (
     TaskStatus,
     TaskStatusUpdate,
     TaskUpdate,
+)
+from app.services.email_service import (
+    queue_task_assignment_email,
+    queue_task_reassignment_email,
 )
 from app.services.notification_service import create_notification, dispatch_notification_event
 
@@ -108,10 +114,12 @@ def create_task(
     user: User,
     project_id: int,
     data: TaskCreate,
+    background_tasks: Optional[BackgroundTasks] = None,
 ) -> Task:
     project = _require_project(db, user, project_id)
+    assignee = None
     if data.assigned_to is not None:
-        _require_assignee(db, project.id, user.organization_id, data.assigned_to)
+        assignee = _require_assignee(db, project.id, user.organization_id, data.assigned_to)
 
     now = datetime.now(timezone.utc)
     task = Task(
@@ -141,6 +149,15 @@ def create_task(
             title="New Task Assigned",
             message=f"You have been assigned to task: {task.title}",
         )
+        if assignee:
+            queue_task_assignment_email(
+                background_tasks,
+                to_email=assignee.email,
+                assignee_name=assignee.name,
+                task_title=task.title,
+                task_id=task.id,
+                project_name=project.name,
+            )
 
     _commit(db)
     db.refresh(task)
@@ -252,13 +269,15 @@ def update_task_assignee(
     user: User,
     task_id: int,
     data: TaskAssigneeUpdate,
+    background_tasks: Optional[BackgroundTasks] = None,
 ) -> Task:
     task = _require_task(db, user, task_id)
     if task.assigned_to == data.assigned_to:
         return task
 
+    assignee = None
     if data.assigned_to is not None:
-        _require_assignee(
+        assignee = _require_assignee(
             db,
             task.project_id,
             user.organization_id,
@@ -280,6 +299,15 @@ def update_task_assignee(
             title="Task Assigned to You",
             message=f"You have been assigned to task: {task.title}",
         )
+        if assignee:
+            queue_task_reassignment_email(
+                background_tasks,
+                to_email=assignee.email,
+                assignee_name=assignee.name,
+                task_title=task.title,
+                task_id=task.id,
+                project_name=task.project.name,
+            )
 
     _commit(db)
     db.refresh(task)
