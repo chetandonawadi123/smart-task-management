@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Menu, Search, Bell, ChevronDown, AlertCircle, RefreshCw } from 'lucide-react';
+import { Menu, Search, ChevronDown, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { dashboardService } from '../services/dashboardService';
 import { DashboardSidebar } from '../components/dashboard/DashboardSidebar';
@@ -8,6 +8,7 @@ import { DashboardSkeleton } from '../components/dashboard/DashboardSkeleton';
 import { StatCard } from '../components/dashboard/StatCard';
 import { TaskStatusChart, PriorityChart, ProjectChart, TeamChart } from '../components/dashboard/DashboardCharts';
 import { RecentActivity } from '../components/dashboard/RecentActivity';
+import { NotificationBell } from '../components/notifications/NotificationBell';
 
 export const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -36,7 +37,7 @@ export const Dashboard: React.FC = () => {
             <h1 className="text-lg font-bold text-slate-900 sm:hidden">Dashboard</h1>
           </div>
           <div className="flex items-center gap-4">
-            <button type="button" aria-label="Notifications" className="relative rounded-xl p-2 text-slate-500 hover:bg-slate-100"><Bell className="h-5 w-5" /><span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-blue-600" /></button>
+            <NotificationBell />
             <div className="hidden h-8 w-px bg-slate-200 sm:block" />
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">{user?.name.charAt(0).toUpperCase()}</div>

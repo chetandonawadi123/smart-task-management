@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Menu, Search, Bell, ChevronDown } from 'lucide-react';
+import { Menu, Search, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { DashboardSidebar } from '../dashboard/DashboardSidebar';
+import { NotificationBell } from '../notifications/NotificationBell';
 
 export const ProjectsShell: React.FC<{ children: React.ReactNode; title: string; subtitle: string }> = ({ children, title, subtitle }) => {
   const { user, logout } = useAuth();
@@ -17,7 +18,7 @@ export const ProjectsShell: React.FC<{ children: React.ReactNode; title: string;
             <div className="relative hidden sm:block"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input aria-label="Search" placeholder="Search anything..." className="w-72 rounded-xl border-0 bg-slate-100 py-2.5 pl-10 pr-4 text-sm outline-none ring-blue-500 placeholder:text-slate-400 focus:ring-2" /></div>
             <h1 className="text-lg font-bold text-slate-900 sm:hidden">{title}</h1>
           </div>
-          <div className="flex items-center gap-4"><button type="button" aria-label="Notifications" className="relative rounded-xl p-2 text-slate-500 hover:bg-slate-100"><Bell className="h-5 w-5" /></button><div className="hidden h-8 w-px bg-slate-200 sm:block" /><div className="flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">{user?.name.charAt(0).toUpperCase()}</div><div className="hidden sm:block"><p className="text-sm font-semibold text-slate-800">{user?.name}</p><p className="text-xs text-slate-500">{user?.role}</p></div><ChevronDown className="hidden h-4 w-4 text-slate-400 sm:block" /></div></div>
+          <div className="flex items-center gap-4"><NotificationBell /><div className="hidden h-8 w-px bg-slate-200 sm:block" /><div className="flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">{user?.name.charAt(0).toUpperCase()}</div><div className="hidden sm:block"><p className="text-sm font-semibold text-slate-800">{user?.name}</p><p className="text-xs text-slate-500">{user?.role}</p></div><ChevronDown className="hidden h-4 w-4 text-slate-400 sm:block" /></div></div>
         </header>
         <main className="p-5 sm:p-8"><div className="mb-7"><p className="text-sm font-medium text-blue-600">Workspace</p><h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{title}</h1><p className="mt-2 text-sm text-slate-500">{subtitle}</p></div>{children}</main>
       </div>

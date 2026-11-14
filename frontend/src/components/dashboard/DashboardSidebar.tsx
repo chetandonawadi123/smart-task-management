@@ -23,7 +23,7 @@ const navigation = [
   { label: 'Projects', icon: FolderKanban, to: '/projects' },
   { label: 'Tasks', icon: ListTodo, to: '/tasks' },
   { label: 'Kanban Board', icon: KanbanSquare, to: '/kanban' },
-  { label: 'Notifications', icon: Bell },
+  { label: 'Notifications', icon: Bell, to: '/notifications' },
   { label: 'Settings', icon: Settings },
 ];
 
