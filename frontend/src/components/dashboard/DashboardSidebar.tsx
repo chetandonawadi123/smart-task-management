@@ -1,4 +1,5 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 import {
   Bell,
   CheckSquare,
@@ -18,8 +19,8 @@ interface DashboardSidebarProps {
 }
 
 const navigation = [
-  { label: 'Dashboard', icon: LayoutDashboard, active: true },
-  { label: 'Projects', icon: FolderKanban },
+  { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
+  { label: 'Projects', icon: FolderKanban, to: '/projects' },
   { label: 'Tasks', icon: ListTodo },
   { label: 'Kanban Board', icon: KanbanSquare },
   { label: 'Notifications', icon: Bell },
@@ -44,10 +45,12 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ open, onClos
 
       <nav className="mt-10 flex-1 space-y-1">
         <p className="px-3 pb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Workspace</p>
-        {navigation.map(({ label, icon: Icon, active }) => (
-          <button key={label} type="button" className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${active ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+        {navigation.map(({ label, icon: Icon, to }) => (
+          to ? <NavLink key={label} to={to} onClick={onClose} className={({ isActive }) => `flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
             <Icon className="h-5 w-5" />
             {label}
+          </NavLink> : <button key={label} type="button" className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-400 transition hover:bg-white/5 hover:text-white">
+            <Icon className="h-5 w-5" />{label}
           </button>
         ))}
       </nav>
