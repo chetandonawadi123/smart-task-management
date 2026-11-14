@@ -21,8 +21,8 @@ interface DashboardSidebarProps {
 const navigation = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
   { label: 'Projects', icon: FolderKanban, to: '/projects' },
-  { label: 'Tasks', icon: ListTodo },
-  { label: 'Kanban Board', icon: KanbanSquare },
+  { label: 'Tasks', icon: ListTodo, to: '/tasks' },
+  { label: 'Kanban Board', icon: KanbanSquare, to: '/kanban' },
   { label: 'Notifications', icon: Bell },
   { label: 'Settings', icon: Settings },
 ];

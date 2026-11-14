@@ -8,6 +8,9 @@ import { Register } from '../pages/Register';
 import { Dashboard } from '../pages/Dashboard';
 import { Projects } from '../pages/Projects';
 import { ProjectDetails } from '../pages/ProjectDetails';
+import { Tasks } from '../pages/Tasks';
+import { Kanban } from '../pages/Kanban';
+import { TaskDetails } from '../pages/TaskDetails';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,6 +53,9 @@ export const AppRoutes: React.FC = () => {
                 </ProtectedRoute>
               }
             />
+            <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
+            <Route path="/tasks/:taskId" element={<ProtectedRoute><TaskDetails /></ProtectedRoute>} />
+            <Route path="/kanban" element={<ProtectedRoute><Kanban /></ProtectedRoute>} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </BrowserRouter>

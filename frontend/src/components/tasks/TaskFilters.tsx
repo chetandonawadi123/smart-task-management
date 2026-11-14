@@ -1,0 +1,5 @@
+import React from 'react';
+import type { TaskPriority, TaskStatus } from '../../types';
+
+interface Props { status: TaskStatus | ''; priority: TaskPriority | ''; onStatus: (value: TaskStatus | '') => void; onPriority: (value: TaskPriority | '') => void; }
+export const TaskFilters: React.FC<Props> = ({ status, priority, onStatus, onPriority }) => <div className="flex flex-wrap gap-3"><select value={status} onChange={(event) => onStatus(event.target.value as TaskStatus | '')} className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"><option value="">All statuses</option><option value="todo">To Do</option><option value="in_progress">In Progress</option><option value="in_review">In Review</option><option value="done">Done</option></select><select value={priority} onChange={(event) => onPriority(event.target.value as TaskPriority | '')} className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"><option value="">All priorities</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option></select></div>;
